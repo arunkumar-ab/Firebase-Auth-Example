@@ -1,11 +1,21 @@
 import 'package:auth_example/sign_in_view.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-class SignUpView extends StatelessWidget {
+class SignUpView extends StatefulWidget {
   const SignUpView({
     Key? key,
   }) : super(key: key);
 
+  @override
+  State<SignUpView> createState() => _SignUpViewState();
+}
+
+class _SignUpViewState extends State<SignUpView> {
+  TextEditingController nameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,6 +40,7 @@ class SignUpView extends StatelessWidget {
                     height: 40,
                   ),
                   TextField(
+                    controller: nameController,
                     decoration: InputDecoration(
                       fillColor: Colors.grey[200],
                       filled: true,
@@ -41,6 +52,7 @@ class SignUpView extends StatelessWidget {
                     height: 20,
                   ),
                   TextField(
+                    controller: emailController,
                     decoration: InputDecoration(
                       fillColor: Colors.grey[200],
                       filled: true,
@@ -52,6 +64,7 @@ class SignUpView extends StatelessWidget {
                     height: 20,
                   ),
                   TextField(
+                    controller: passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
                       fillColor: Colors.grey[200],
@@ -77,7 +90,9 @@ class SignUpView extends StatelessWidget {
                     height: 20,
                   ),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      handleSignUp();
+                    },
                     child: Text("Sign Up"),
                     style: ElevatedButton.styleFrom(
                       primary: Colors.orange,
@@ -100,5 +115,25 @@ class SignUpView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void handleSignUp() async {
+    String name = nameController.text;
+    String email = emailController.text;
+    String password = passwordController.text;
+    print("trying to sign in");
+    try {
+      await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      print(e);
+      if (e.code == 'weak-password') {
+        print('The password provided is too weak.');
+      } else if (e.code == 'email-already-in-use') {
+        print('The account already exists for that email.');
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 }

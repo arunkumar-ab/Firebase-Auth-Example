@@ -1,9 +1,12 @@
+import 'package:auth_example/home.dart';
 import 'package:auth_example/sign_in_view.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -32,6 +35,45 @@ class RootPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SignInView();
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: ((BuildContext context, AsyncSnapshot snapshot) {
+        if (snapshot.hasData) {
+          return HomeView();
+        } else if (snapshot.hasError) {
+          return ErrorView();
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
+          return LoadingView();
+        } else {
+          return SignInView();
+        }
+      }),
+    );
+  }
+}
+
+class ErrorView extends StatelessWidget {
+  const ErrorView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text("Error"),
+      ),
+    );
+  }
+}
+
+class LoadingView extends StatelessWidget {
+  const LoadingView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
   }
 }

@@ -1,9 +1,17 @@
 import 'package:auth_example/sign_up_view.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class SignInView extends StatelessWidget {
+class SignInView extends StatefulWidget {
   const SignInView({super.key});
 
+  @override
+  State<SignInView> createState() => _SignInViewState();
+}
+
+class _SignInViewState extends State<SignInView> {
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -12,31 +20,33 @@ class SignInView extends StatelessWidget {
           Expanded(
             flex: 4,
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 60, vertical: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 30),
               child: Column(
                 children: [
-                  Text(
+                  const Text(
                     "Login",
                     style: TextStyle(
                         color: Colors.orange,
                         fontSize: 20,
                         fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 40,
                   ),
                   TextField(
+                    controller: emailController,
                     decoration: InputDecoration(
                       fillColor: Colors.grey[200],
                       filled: true,
                       hintText: "Email",
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   SizedBox(
                     height: 20,
                   ),
                   TextField(
+                    controller: passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
                       fillColor: Colors.grey[200],
@@ -65,7 +75,9 @@ class SignInView extends StatelessWidget {
                     height: 20,
                   ),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      handleSignIn();
+                    },
                     child: Text("Sign In"),
                     style: ElevatedButton.styleFrom(
                       primary: Colors.orange,
@@ -88,5 +100,27 @@ class SignInView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void handleSignIn() async {
+    String email = emailController.text;
+    String password = passwordController.text;
+
+    try {
+      await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        const snackBar = SnackBar(
+          content: Text('No user found for that email.'),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      } else if (e.code == 'wrong-password') {
+        const snackBar = SnackBar(
+          content: Text('Wrong password provided for that user.'),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      }
+    }
   }
 }
